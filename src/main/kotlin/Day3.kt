@@ -25,21 +25,19 @@ fun main() {
    * Part 2
    */
   solve(day = 3) { lines ->
-    fun filterBits(report: List<List<Int>>, mostCommon: Boolean): List<Int> =
+    fun filterBits(report: List<List<Int>>, invert: Boolean): List<Int> =
       report.first().indices.fold(report) { reportFiltered, column ->
         val (ones, zeroes) = reportFiltered.partition { it[column] == 1 }
-        listOf(ones, zeroes)
-          .let { if (mostCommon) it else it.reversed() }
-          .get(if (ones.size >= zeroes.size) 0 else 1)
-          .also { next -> if (next.size == 1) return@filterBits next[0] }
+        (if ((ones.size >= zeroes.size) xor invert) ones else zeroes)
+          .also { if (it.size == 1) return@filterBits it[0] }
       }.first()
 
     val reportLines = lines
       .map { line -> line.asIterable().map(Char::digitToInt) }
       .toList()
 
-    filterBits(reportLines, true).joinToString("").toInt(2)
-      .times(filterBits(reportLines, false).joinToString("").toInt(2))
+    filterBits(reportLines, false).joinToString("").toInt(2)
+      .times(filterBits(reportLines, true).joinToString("").toInt(2))
   }
 }
 
