@@ -1,19 +1,46 @@
 import util.solve
 
-// Part 1
-fun main() = solve(day = 3) { lines ->
-  val (lineCount, oneBitCounts) = lines.fold(
-    initial = Pair(0, listOf<Int>())
-  ) { (lineCount, oneBitCounts), line ->
-    val lineBits = line.asIterable().map(Char::digitToInt)
-    Pair(
-      lineCount + 1,
-      if (oneBitCounts.isEmpty()) lineBits
-      else oneBitCounts.zip(lineBits, Int::plus)
-    )
+fun main() {
+  /*
+   * Part 1.
+   * This implementation, although lengthy, can take any input
+   * size while keeping low memory footprint and good performance
+   * given the input is scanned only once and computations are lazy.
+   */
+  solve(day = 3) { lines ->
+    val (lineCount, oneBitCounts) = lines.fold(
+      initial = Pair(0, listOf<Int>())
+    ) { (lineCount, oneBitCounts), line ->
+      val lineBits = line.asIterable().map(Char::digitToInt)
+      Pair(
+        lineCount + 1,
+        if (oneBitCounts.isEmpty()) lineBits
+        else oneBitCounts.zip(lineBits, Int::plus)
+      )
+    }
+    val gammaRateBits = oneBitCounts.map { count -> Bit(count > lineCount / 2) }
+    gammaRateBits.toInt() * gammaRateBits.map(Bit::flip).toInt()
   }
-  val gammaRateBits = oneBitCounts.map { count -> Bit(count > lineCount / 2) }
-  gammaRateBits.toInt() * gammaRateBits.map(Bit::flip).toInt()
+  /*
+   * Part 2
+   */
+  solve(day = 3) { lines ->
+    fun filterBits(report: List<List<Int>>, mostCommon: Boolean): List<Int> =
+      report.first().indices.fold(report) { reportFiltered, column ->
+        val (ones, zeroes) = reportFiltered.partition { it[column] == 1 }
+        listOf(ones, zeroes)
+          .let { if (mostCommon) it else it.reversed() }
+          .get(if (ones.size >= zeroes.size) 0 else 1)
+          .also { next -> if (next.size == 1) return@filterBits next[0] }
+      }.first()
+
+    val reportLines = lines
+      .map { line -> line.asIterable().map(Char::digitToInt) }
+      .toList()
+
+    filterBits(reportLines, true).joinToString("").toInt(2)
+      .times(filterBits(reportLines, false).joinToString("").toInt(2))
+  }
 }
 
 @JvmInline
